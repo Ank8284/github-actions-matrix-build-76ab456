@@ -1,0 +1,55 @@
+name: Matrix Build with Artifacts
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch: {}
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        node-version: [14, 16, 18]
+      fail-fast: false
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: matrix-76ab456
+        run: |
+          echo "Starting build for OS=${{ matrix.os }} NODE=${{ matrix.node-version }}"
+
+      - name: Install dependencies (noop)
+        run: |
+          # Intentionally simple to keep demo fast. Replace with real installs if needed.
+          node -v
+          npm -v || true
+
+      - name: Generate build artifact
+        run: |
+          mkdir -p build
+          echo "Build metadata:" > build/output.txt
+          echo "os=${{ matrix.os }}" >> build/output.txt
+          echo "node_version=${{ matrix.node-version }}" >> build/output.txt
+          echo "timestamp=$(date)" >> build/output.txt
+          # put some content unique to the matrix run
+          echo "random=$RANDOM" >> build/output.txt
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-76ab456-${{ matrix.os }}-v${{ matrix.node-version }}
+          path: build/output.txt
+
+      - name: List uploaded artifact file for verification
+        if: always()
+        run: |
+          echo "Artifact contents:" && cat build/output.txt
